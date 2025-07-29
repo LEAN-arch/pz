@@ -3,7 +3,7 @@
 #
 # A single-file Streamlit application designed for a CO&PE Head role.
 #
-# VERSION: Corrected for pandas dtype errors.
+# VERSION: Corrected for pandas dtype errors and deprecated parameters.
 #
 # This dashboard provides a real-time, risk-based view of the Pharmaceutical
 # Quality System (PQS), integrating principles from key global regulations
@@ -17,9 +17,9 @@
 #   - ISO 14971 (Medical Devices - Application of Risk Management)
 #
 # To Run:
-# 1. Save this code as 'grc_command_center_fixed.py'
+# 1. Save this code as 'grc_command_center_final.py'
 # 2. Install dependencies: pip install streamlit pandas numpy plotly scikit-learn
-# 3. Run from your terminal: streamlit run grc_command_center_fixed.py
+# 3. Run from your terminal: streamlit run grc_command_center_final.py
 #
 # ======================================================================================
 
@@ -88,9 +88,7 @@ def generate_capa_data():
         'Risk_Level': np.random.choice(['Critical', 'Major', 'Minor'], 150, p=[0.05, 0.35, 0.6])
     }
     df = pd.DataFrame(data)
-    
-    # --- FIX APPLIED HERE ---
-    # Convert object column to datetime64 to enable vectorized operations and .dt accessor
+
     df['Creation_Date'] = pd.to_datetime(df['Creation_Date'])
     
     df['Due_Date'] = df['Creation_Date'] + pd.to_timedelta(np.select([df['Risk_Level']=='Critical', df['Risk_Level']=='Major'], [30, 60], 90), unit='d')
@@ -150,8 +148,6 @@ def generate_document_data():
     }
     df = pd.DataFrame(data)
     
-    # --- FIX APPLIED HERE ---
-    # Convert object columns to datetime64
     df['Last_Review_Date'] = pd.to_datetime(df['Last_Review_Date'])
     
     df['Next_Review_Date'] = df['Last_Review_Date'] + pd.to_timedelta(df['Review_Cycle_Days'], unit='d')
@@ -403,7 +399,9 @@ with tab4:
 
 # --- SIDEBAR & FOOTER ---
 st.sidebar.markdown("---")
-st.sidebar.image("https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/Pfizer_logo.svg/2560px-Pfizer_logo.svg.png", use_column_width=True)
+# --- FIX APPLIED HERE ---
+# Changed 'use_column_width' to the modern 'use_container_width' parameter.
+st.sidebar.image("https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/Pfizer_logo.svg/2560px-Pfizer_logo.svg.png", use_container_width=True)
 st.sidebar.markdown("### About this Dashboard")
 st.sidebar.info(
     "This **GRC Command Center** is a prototype for the CO&PE Head, integrating data from QMS, ERP, and project systems. It is designed to facilitate proactive governance, risk management, and compliance with key global regulations including **21 CFR Part 11/820, ICH Q9/Q10, and ISO 13485**."
