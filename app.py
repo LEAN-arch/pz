@@ -3,6 +3,8 @@
 #
 # A single-file Streamlit application designed for a CO&PE Head role.
 #
+# VERSION: Corrected for pandas dtype errors.
+#
 # This dashboard provides a real-time, risk-based view of the Pharmaceutical
 # Quality System (PQS), integrating principles from key global regulations
 # and standards including:
@@ -15,9 +17,9 @@
 #   - ISO 14971 (Medical Devices - Application of Risk Management)
 #
 # To Run:
-# 1. Save this code as 'grc_command_center.py'
-# 2. Install dependencies: pip install streamlit pandas numpy plotly
-# 3. Run from your terminal: streamlit run grc_command_center.py
+# 1. Save this code as 'grc_command_center_fixed.py'
+# 2. Install dependencies: pip install streamlit pandas numpy plotly scikit-learn
+# 3. Run from your terminal: streamlit run grc_command_center_fixed.py
 #
 # ======================================================================================
 
@@ -86,9 +88,14 @@ def generate_capa_data():
         'Risk_Level': np.random.choice(['Critical', 'Major', 'Minor'], 150, p=[0.05, 0.35, 0.6])
     }
     df = pd.DataFrame(data)
+    
+    # --- FIX APPLIED HERE ---
+    # Convert object column to datetime64 to enable vectorized operations and .dt accessor
+    df['Creation_Date'] = pd.to_datetime(df['Creation_Date'])
+    
     df['Due_Date'] = df['Creation_Date'] + pd.to_timedelta(np.select([df['Risk_Level']=='Critical', df['Risk_Level']=='Major'], [30, 60], 90), unit='d')
-    df['Days_Open'] = (datetime.date.today() - df['Creation_Date']).dt.days
-    df['Is_Overdue'] = (datetime.date.today() > df['Due_Date']) & (~df['Status'].str.contains('Closed'))
+    df['Days_Open'] = (pd.to_datetime('today') - df['Creation_Date']).dt.days
+    df['Is_Overdue'] = (pd.to_datetime('today') > df['Due_Date']) & (~df['Status'].str.contains('Closed'))
     return df
 
 @st.cache_data(ttl=600)
@@ -142,8 +149,13 @@ def generate_document_data():
         'Review_Cycle_Days': np.random.choice([365, 730], 50)
     }
     df = pd.DataFrame(data)
+    
+    # --- FIX APPLIED HERE ---
+    # Convert object columns to datetime64
+    df['Last_Review_Date'] = pd.to_datetime(df['Last_Review_Date'])
+    
     df['Next_Review_Date'] = df['Last_Review_Date'] + pd.to_timedelta(df['Review_Cycle_Days'], unit='d')
-    df['Days_Until_Review'] = (df['Next_Review_Date'] - datetime.date.today()).dt.days
+    df['Days_Until_Review'] = (df['Next_Review_Date'] - pd.to_datetime('today')).dt.days
     return df
 
 # ======================================================================================
